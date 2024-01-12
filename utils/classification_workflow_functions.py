@@ -215,7 +215,7 @@ def find_correlating_features(features, targets, thresh=0.4, plot=True, process_
             correlations = tmp_df.corr(method=corr_method)
 
             if abs(correlations.loc[ent, "property"]) > thresh:
-                #print("mia xara")
+                
                 usable_features.append(ent)
                 if significance is True:
                     p_value = pt(feat, targets, method="approximate", num_rounds=n_sample, func=fcorr, seed=random_seed)
@@ -235,26 +235,11 @@ def find_correlating_features(features, targets, thresh=0.4, plot=True, process_
             
         except KeyError:
             if process_non_numeric is True:
-                # print("oxi")
-                # If non-numeric error messages occur from mordred the correlation matrix is empy and has a key error
                 log.debug("WARNING - some molecules do not have this feature ({}) thus the correlation is for a sub-set.".format(ent))
 
                 tmp_df = tmp_df[pd.to_numeric(tmp_df[ent], errors='coerce').notnull()]
                 tmp_df[ent] = pd.to_numeric(tmp_df[ent])
                 tmp_df["property"] = pd.to_numeric(tmp_df["property"])
-
-                # correlations = tmp_df.corr(method=corr_method)
-
-                # if abs(correlations.loc[ent, "property"]) > thresh:
-                #     print("gamiesai")
-                #     usable_features.append(ent)
-                #     if significance is True:
-                #         # print(feat)
-                #         p_value = pt(feat, targets, method="approximate", num_rounds=n_sample, func=fcorr, seed=random_seed)
-                #         significant = True if p_value < sig_level else False
-                #         log.info("{}: {:.4f} P: {:.4f} Significant at {:.4f} level? {}" .format(ent, correlations.loc[ent, "property"], p_value, sig_level, significant))
-                #     else:
-                #         log.info("{}: {:.4f}" .format(ent, correlations.loc[ent, "property"]))
 
                 del tmp_df
             else:
@@ -1007,8 +992,7 @@ def kfold_test_imbalenced_classifiers_with_optimization(df, classes, classifiers
             ax = plt.subplot(2, plt_rows, kf_iteration+1)
             ax.plot(fpr, tpr, color="red",
                      lw=1.5, label="ROC curve (auc = {:.2f})".format(roc_auc))
-            
-                # ugliest legend i ve made in my life - maybe one under the other?
+
             
             try:
                 ax.plot(fpr, tpr, alpha=0.0,color="white", lw=1.5,label= "pre_class0 = {:.2f}\n".format(output_dict[0]['pre'])+"pre_class1 = {:.2f}".format(output_dict[1]['pre']))
@@ -1363,8 +1347,7 @@ def kfold_test_imbalenced_classifiers_with_optimization_tmp(df, classes, classif
             ax = plt.subplot(2, plt_rows, kf_iteration+1)
             ax.plot(fpr, tpr, color="red",
                      lw=1.5, label="ROC curve (auc = {:.2f})".format(roc_auc))
-            
-                # ugliest legend i ve made in my life - maybe one under the other?
+
             
             try:
                 ax.plot(fpr, tpr, alpha=0.0,color="white", lw=1.5,label= "pre_class0 = {:.2f}\n".format(output_dict[0]['pre'])+"pre_class1 = {:.2f}".format(output_dict[1]['pre']))
@@ -1621,8 +1604,7 @@ def kfold_test_imbalenced_classifiers_with_optimization_no_smote(df, classes, cl
             ax = plt.subplot(2, plt_rows, kf_iteration+1)
             ax.plot(fpr, tpr, color="red",
                      lw=1.5, label="ROC curve (auc = {:.2f})".format(roc_auc))
-            
-                # ugliest legend i ve made in my life - maybe one under the other?
+
             
             ax.plot(fpr, tpr, alpha=0.0,color="white", lw=1.5,label= "pre_class0 = {:.2f}\n".format(output_dict[0]['pre'])+"pre_class1 = {:.2f}".format(output_dict[1]['pre']))
             ax.plot(fpr, tpr, alpha=0.0,color="white", lw=1.5,label= "f1_class0 = {:.2f}\n".format(output_dict[0]['f1'])+ "f1_class1 = {:.2f}".format(output_dict[1]['f1']))
@@ -1929,8 +1911,7 @@ def kfold_test_imbalenced_classifiers_with_optimization_and_explanation(df, clas
             ax = plt.subplot(2, plt_rows, kf_iteration+1)
             ax.plot(fpr, tpr, color="red",
                      lw=1.5, label="ROC curve (auc = {:.2f})".format(roc_auc))
-            
-                # ugliest legend i ve made in my life - maybe one under the other?
+
             
             ax.plot(fpr, tpr, alpha=0.0,color="white", lw=1.5,label= "pre_class0 = {:.2f}\n".format(output_dict[0]['pre'])+"pre_class1 = {:.2f}".format(output_dict[1]['pre']))
             ax.plot(fpr, tpr, alpha=0.0,color="white", lw=1.5,label= "f1_class0 = {:.2f}\n".format(output_dict[0]['f1'])+ "f1_class1 = {:.2f}".format(output_dict[1]['f1']))
@@ -2105,76 +2086,6 @@ def build_data_from_directory(data_directory, max_folds=10):
     
     return data
 
-
-def build_data_from_directory_regr(data_directory, max_folds=10):
-    """
-    Fucntion to build a set of data from csv files names K.csv where K is the fold number and the csv
-    is the predictions for the test data from that fold
-    :param directory: str - name of the directory to read the csv files from
-    :param max_fold: int - the number of folds run in the Kfold cv
-    """
-
-    log = logging.getLogger(__name__)
-
-    for i in range(0, max_folds):
-        log.info("Reading {}.csv".format(i))
-        data_fold = pd.read_csv(os.path.join(data_directory, "{}.csv".format(i)), header=0)
-        # log.info(data_fold)
-        if i == 0:
-            data = data_fold.copy()
-        else:
-            data = pd.concat([data, data_fold])
-
-    data.drop("Unnamed: 0", axis=1, inplace=True)
-    data.columns = ["index", "known", "prediction"]
-    data["index"] = [int(ent) for ent in data["index"].values]
-    data.set_index("index", inplace=True, drop=True, verify_integrity=True)
-    data.sort_index(inplace=True)
-
-    return data
-
-def metrics_for_regression(directories=('LassoCV',
- 'KNeighborsRegressor',
- 'Decision_Tree_Regressor',
- 'SVR',
- 'Bayesian_Regr'), max_folds=10,
-                            names=None, smiles=None):
-    log = logging.getLogger(__name__)
-
-    for directory in directories:
-
-        log.info("\n-----\nAnalyzing predictions for model {}\n-----".format(directory))
-        data = build_data_from_directory_regr(directory, max_folds=max_folds)
-
-        if names is not None:
-            data["names"] = names
-        if smiles is not None:
-            data["smiles"] = smiles
-
-        variance = explained_variance_score(data['known'], data['prediction'])
-        MAE = mean_absolute_error(data['known'], data['prediction'])
-        MSE = mean_squared_error(data['known'], data['prediction'])
-        R2 = r2_score(data['known'], data['prediction'])
-        log.info("\n-----\n Scores for Regressor: Explained Variance: {}, MAE: {}, MSE: {},R2: {}\n-----".format(variance,MAE,MSE,R2))
-        f = open("{}/metrics.txt".format(directory), "w")
-        f.write(str(variance))
-        f.write("\n")
-        f.write(str(MAE))
-        f.write("\n")
-        f.write(str(MSE))
-        f.write("\n")
-        f.write(str(R2))
-        f.write("\n")
-        f.close()
-        plt.scatter(data['known'], data['prediction'], color='blue',marker='x')
-        plt.ylabel('Prediction',fontsize=20)
-        plt.xlabel('Actual',fontsize=20)
-        plt.plot([-1, 4], [-1, 4], "k:")
-
-        plt.xticks(np.arange(-1, 4, step=0.5))
-        plt.yticks(np.arange(-1, 4, step=0.5))
-        plt.savefig("{}/regression.png".format(directory))
-        plt.show()
 
 def metrics_for_all_classes(directories=("AdaBoost", "Decision_Tree", "ExtraTreesClassifier", "Gaussian_Process", "Logistic_Regression", "Nearest_Neighbors"), max_folds=10, 
                             names=None, smiles=None):
@@ -2471,12 +2382,6 @@ def test_classifiers_with_optimization(df, classes, classifiers, clf_options, sm
     if clf_names is None:
         clf_names = [i for i in range(0, len(classifiers))]
     
-#     if scale is True:
-#         data = minmaxscale(data)
-#         log.info("Scaled data:\n{}".format(data))
-#     else:
-#         log.info("Using unscaled features")
-    
     Xtrain, Xtest, ytrain, ytest = train_test_split(data, classes, test_size=test_set_size, random_state=random_seed, shuffle=True)
     log.info("Xtrain: {}\nXtest: {}\nytrain: {}\nytest: {}".format(Xtrain, Xtest, ytrain, ytest))
     log.info("{} {}".format(Xtest.index, ytest))
@@ -2733,8 +2638,7 @@ def kfold_test_imbalenced_classifiers_with_optimization(df, classes, classifiers
             ax = plt.subplot(2, plt_rows, kf_iteration+1)
             ax.plot(fpr, tpr, color="red",
                      lw=1.5, label="ROC curve (auc = {:.2f})".format(roc_auc))
-            
-                # ugliest legend i ve made in my life - maybe one under the other?
+
             
             try:
                 ax.plot(fpr, tpr, alpha=0.0,color="white", lw=1.5,label= "pre_class0 = {:.2f}\n".format(output_dict[0]['pre'])+"pre_class1 = {:.2f}".format(output_dict[1]['pre']))
